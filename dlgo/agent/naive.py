@@ -3,6 +3,7 @@ from dlgo.agent.base import Agent
 from dlgo.agent.helpers import is_point_an_eye
 from dlgo.goboard_slow import Move
 from dlgo.gotypes import Point
+from dlgo import kerasutil
 class RandomBot(Agent):
     def select_move(self, game_state):
         """Choose a random valid move that preserves our own eyes."""

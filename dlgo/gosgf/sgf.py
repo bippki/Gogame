@@ -13,12 +13,6 @@ import six
 from . import sgf_grammar
 from . import sgf_properties
 
-__all__ = [
-    'Node',
-    'Sgf_game',
-    'Tree_node',
-]
-
 
 class Node:
     """An SGF node.

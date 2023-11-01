@@ -43,13 +43,18 @@ class GoDataProcessor:
         sampler = Sampler(data_dir=self.data_dir)
         data = sampler.draw_data(data_type, num_samples)
 
-        self.map_to_workers(data_type, data)
+        self.map_to_workers(data_type, data)  # <1>
         if use_generator:
             generator = DataGenerator(self.data_dir, data)
-            return generator
+            return generator  # <2>
         else:
             features_and_labels = self.consolidate_games(data_type, data)
-            return features_and_labels
+            return features_and_labels  # <3>
+
+# <1> Map workload to CPUs
+# <2> Either return a Go data generator...
+# <3> ... or return consolidated data as before.
+# end::load_generator[]
 
     def unzip_data(self, zip_file_name):
         this_gz = gzip.open(self.data_dir + '/' + zip_file_name)

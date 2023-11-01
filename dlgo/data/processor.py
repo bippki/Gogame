@@ -1,22 +1,36 @@
+from __future__ import absolute_import
+
+# tag::base_imports[]
 import os.path
 import tarfile
 import gzip
 import glob
 import shutil
+
 import numpy as np
 from keras.utils import to_categorical
+# end::base_imports[]
+
+# tag::dlgo_imports[]
 from dlgo.gosgf import Sgf_game
 from dlgo.goboard_fast import Board, GameState, Move
 from dlgo.gotypes import Player, Point
 from dlgo.encoders.base import get_encoder_by_name
-from dlgo.data.index_processor import KGSIndex
-from dlgo.data.sampling import Sampler
 
+from dlgo.data.index_processor import KGSIndex
+from dlgo.data.sampling import Sampler  # <1>
+# <1> Sampler will be used to sample training and test data from files.
+# end::dlgo_imports[]
+
+
+# tag::processor_init[]
 class GoDataProcessor:
     def __init__(self, encoder='oneplane', data_directory='data'):
         self.encoder = get_encoder_by_name(encoder, 19)
         self.data_dir = data_directory
+# end::processor_init[]
 
+# tag::load_go_data[]
     def load_go_data(self, data_type='train',  # <1>
                      num_samples=1000):  # <2>
         index = KGSIndex(data_directory=self.data_dir)
@@ -38,7 +52,7 @@ class GoDataProcessor:
             if not os.path.isfile(self.data_dir + '/' + data_file_name):
                 self.process_zip(zip_name, data_file_name, indices_by_zip_name[zip_name])  # <7>
 
-        features_and_labels = self.consolidate_games(data_type, data)
+        features_and_labels = self.consolidate_games(data_type, data)  # <8>
         return features_and_labels
 
     def unzip_data(self, zip_file_name):
@@ -51,7 +65,12 @@ class GoDataProcessor:
         this_tar.close()
         return tar_file
 
+# <1> Unpack the `gz` file into a `tar` file.
+# <2> Remove ".gz" at the end to get the name of the tar file.
+# <3> Copy the contents of the unpacked file into the `tar` file.
+# end::unzip_data[]
 
+# tag::read_sgf_files[]
     def process_zip(self, zip_file_name, data_file_name, game_list):
         tar_file = self.unzip_data(zip_file_name)
         zip_file = tarfile.open(self.data_dir + '/' + tar_file)
@@ -89,6 +108,7 @@ class GoDataProcessor:
                         counter += 1
                     game_state = game_state.apply_move(move)  # <10>
                     first_move_done = True
+
         feature_file_base = self.data_dir + '/' + data_file_name + '_features_%d'
         label_file_base = self.data_dir + '/' + data_file_name + '_labels_%d'
 
@@ -101,9 +121,13 @@ class GoDataProcessor:
             current_features, features = features[:chunksize], features[chunksize:]
             current_labels, labels = labels[:chunksize], labels[chunksize:]  # <2>
             np.save(feature_file, current_features)
-            np.save(label_file, current_labels)
+            np.save(label_file, current_labels)  # <3>
+# <1> We process features and labels in chunks of size 1024.
+# <2> The current chunk is cut off from features and labels...
+# <3> ...  and then stored in a separate file.
+# end::store_features_and_labels[]
 
-
+# tag::consolidate_games[]
     def consolidate_games(self, data_type, samples):
         files_needed = set(file_name for file_name, index in samples)
         file_names = []

@@ -1,10 +1,11 @@
 from dlgo.data.parallel_processor import GoDataProcessor
 from dlgo.encoders.sevenplane import SevenPlaneEncoder
 
-from dlgo.networks import small
+from dlgo.networks import medium
 from keras.models import Sequential
 from keras.layers.core import Dense
 from keras.callbacks import ModelCheckpoint  # <1>
+from keras.backend import set_image_data_format
 
 # <1> With model checkpoints we can store progress for time-consuming experiments
 # end::train_generator_imports[]
@@ -29,7 +30,7 @@ def main():
 
     # tag::train_generator_model[]
     input_shape = (encoder.num_planes, go_board_rows, go_board_cols)
-    network_layers = small.layers(input_shape)
+    network_layers = medium.layers(input_shape)
     model = Sequential()
     for layer in network_layers:
         model.add(layer)
